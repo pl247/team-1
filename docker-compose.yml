@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  downtime-log:
+    build: .
+    ports:
+      - "${APP_PORT:-8742}:${APP_PORT:-8742}"
+    environment:
+      - APP_PORT=8742
+      - LLM_BASE_URL=http://1.1.1.85:8080
+      - LLM_MODEL=llama-70b
+      - LLM_TIMEOUT_SECONDS=15
+      - DB_PATH=/data/downtime.db
+      - SIMULATOR_ENABLED=true
+      - SIMULATOR_INTERVAL_SECONDS=8
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
