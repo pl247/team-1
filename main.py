@@ -18,6 +18,7 @@ APP_PORT = int(os.getenv("APP_PORT", 8742))
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://198.18.5.11:8000/v1")
 LLM_MODEL = os.getenv("LLM_MODEL", "nemotron 3 super 120B")
 LLM_TIMEOUT_SECONDS = int(os.getenv("LLM_TIMEOUT_SECONDS", 15))
+LLM_API_KEY = os.getenv("LLM_API_KEY", "LLM")
 DB_PATH = os.getenv("DB_PATH", "/data/downtime.db")
 SIMULATOR_ENABLED = os.getenv("SIMULATOR_ENABLED", "true").lower() == "true"
 SIMULATOR_INTERVAL_SECONDS = int(os.getenv("SIMULATOR_INTERVAL_SECONDS", 8))
@@ -78,6 +79,9 @@ JSON:"""
                     "messages": [{"role": "user", "content": prompt}],
                     "temperature": 0.1,
                     "max_tokens": 100,
+                },
+                headers={
+                    "Authorization": f"Bearer {LLM_API_KEY}"
                 }
             )
             response.raise_for_status()
@@ -269,7 +273,7 @@ async def get_dashboard():
                 </div>
                 <div class="mt-4 p-3 bg-blue-50 rounded">
                     <p class="text-sm text-blue-800">
-                        <strong>Note:</strong> Classification runs on-premises via local LLM (<code>http://1.1.1.85:8080</code>). 
+                        <strong>Note:</strong> Classification runs on-premises via local LLM (<code>http://198.18.5.11:8000/v1</code>). 
                         No data leaves the factory. Event-to-display latency shown below.
                     </p>
                 </div>
