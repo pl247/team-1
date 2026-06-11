@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 # Configuration from environment variables with defaults
 APP_PORT = int(os.getenv("APP_PORT", 8742))
-LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://1.1.1.85:8080")
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://198.18.5.11:8000/v1")
 LLM_MODEL = os.getenv("LLM_MODEL", "nemotron 3 super 120B")
 LLM_TIMEOUT_SECONDS = int(os.getenv("LLM_TIMEOUT_SECONDS", 15))
 DB_PATH = os.getenv("DB_PATH", "/data/downtime.db")

@@ -35,7 +35,7 @@ The Machine Downtime Log application automatically detects machine stoppages fro
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `APP_PORT` | `8742` | Port for the web application |
-| `LLM_BASE_URL` | `http://1.1.1.85:8080` | Base URL for the local LLM API |
+| `LLM_BASE_URL` | `http://198.18.5.11:8000/v1` | Base URL for the local LLM API |
 | `LLM_MODEL` | `llama-70b` | Model name to use with the LLM |
 | `LLM_TIMEOUT_SECONDS` | `15` | Timeout for LLM requests in seconds |
 | `DB_PATH` | `/data/downtime.db` | Path to SQLite database file |
@@ -44,7 +44,7 @@ The Machine Downtime Log application automatically detects machine stoppages fro
 
 ## Local LLM Integration
 
-The application sends machine event descriptions to a locally hosted LLM (Llama 70B via vLLM) running at `http://1.1.1.85:8080`. The LLM is prompted to return a JSON object with:
+The application sends machine event descriptions to a locally hosted LLM (Llama 70B via vLLM) running at `http://198.18.5.11:8000/v1`. The LLM is prompted to return a JSON object with:
 - `reason_category`: One of ["Mechanical Failure", "Operator Error", "Material Shortage", "Maintenance", "Power Loss", "Unknown"]
 - `severity`: One of ["Low", "Medium", "High", "Critical"]
 
@@ -58,7 +58,7 @@ This ensures the application continues to run even if the LLM is temporarily una
 
 ### Prerequisites
 - Docker and docker-compose installed
-- Access to the local LLM at `http://1.1.1.85:8080` (or adjust `LLM_BASE_URL`)
+- Access to the local LLM at `http://198.18.5.11:8000/v1` (or adjust `LLM_BASE_URL`)
 
 ### Steps
 1. Clone this repository
