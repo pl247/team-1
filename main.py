@@ -101,7 +101,7 @@ class LLMClassification(BaseModel):
     severity: str  # Low, Medium, High, Critical
 
 # Global state for tracking active stoppages
-active_stoppages: Dict[str, Dict] = {}  # machine_id -> event data
+active_stoppages: Dict[str, List[Dict]] = {}  # machine_id -> list of start event data
 
 # LLM client for classification
 class LLMClient:
@@ -272,23 +272,28 @@ class EventSimulator:
         
         if event_data["event_type"] == "start":
             # Start of a potential stoppage
-            active_stoppages[machine_id] = {
+            if machine_id not in active_stoppages:
+                active_stoppages[machine_id] = []
+            active_stoppages[machine_id].append({
                 "machine_id": machine_id,
                 "machine_type": event_data["machine_type"],
                 "start_time": event_data["timestamp"],
                 "description": event_data["description"],
                 "timestamp": event_data["timestamp"]
-            }
+            })
             logger.info(f"Machine {machine_id} started potential stoppage")
-            
+
             # Save to database
             self._save_machine_event(event_data)
             
         elif event_data["event_type"] == "stop":
             # End of a stoppage - create downtime ticket
-            if machine_id in active_stoppages:
-                start_data = active_stoppages.pop(machine_id)
-                
+            if machine_id in active_stoppages and active_stoppages[machine_id]:
+                start_data = active_stoppages[machine_id].pop(0)  # Get the oldest unmatched start
+                # If no more start events for this machine, remove the key
+                if not active_stoppages[machine_id]:
+                    del active_stoppages[machine_id]
+
                 # Calculate downtime
                 try:
                     start_time = datetime.fromisoformat(start_data["start_time"].replace("Z", "+00:00"))
@@ -296,17 +301,17 @@ class EventSimulator:
                     downtime_minutes = (end_time - start_time).total_seconds() / 60.0
                 except Exception:
                     downtime_minutes = 0.0
-                
+
                 # Extract description and severity from the start event description
                 desc_parts = start_data["description"].split(" [")
                 base_description = desc_parts[0] if len(desc_parts) > 0 else start_data["description"]
                 severity_from_desc = "Medium"  # default
                 if len(desc_parts) > 1 and desc_parts[1].endswith("]"):
                     severity_from_desc = desc_parts[1][:-1]
-                
+
                 # Classify with LLM (using the base description)
                 classification = await llm_client.classify_downtime(base_description)
-                
+
                 # Create downtime event
                 downtime_event = {
                     "id": str(uuid.uuid4()),
@@ -319,11 +324,11 @@ class EventSimulator:
                     "severity": classification.severity,
                     "notes": f"Auto-generated from event: {base_description}"
                 }
-                
+
                 # Save to database
                 self._save_downtime_event(downtime_event)
                 self._save_machine_event(event_data)
-                
+
                 logger.info(f"Downtime ticket created for {machine_id}: {downtime_minutes:.1f} min, {classification.reason_category}, {classification.severity}")
             else:
                 # Stop without matching start - treat as new start immediately followed by stop
