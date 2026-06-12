@@ -144,7 +144,12 @@ Base your classification on the description content. If unsure, use "Unknown" fo
             
             if response.status_code == 200:
                 result = response.json()
-                content = result["choices"][0]["message"]["content"].strip()
+                message = result.get("choices", [{}])[0].get("message", {})
+                content = message.get("content")
+                if content is None:
+                    logger.warning("LLM returned empty content")
+                    return LLMClassification(reason_category="Unknown", severity="Medium")
+                content = content.strip()
                 
                 # Try to parse JSON from response
                 try:
